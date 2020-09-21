@@ -42,7 +42,7 @@ fi
 if [ $(ufw status | grep -c "Status: inactive") -eq 1 ]
 then
 	echo "Enabling the firewall..."
-	yes | ufw enable 2>&1 /dev/null
+	yes | ufw enable 2>&1 > /dev/null
 	ufw allow ssh
 	ufw allow http
 fi
