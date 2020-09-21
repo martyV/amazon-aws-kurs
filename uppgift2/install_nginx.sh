@@ -11,7 +11,7 @@ fi
 # Install nginx
 # Expl. I check if nginx is installed and sending stderr to null.
 # Then I pipe the output from dpkg-query to grep and count the number of occurences of the word not-installed, if that equals 1,  I install nginx.
-if [ $(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "not-installed") -eq 1 ]
+if [ $(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "installed") -eq 0 ]
 then
 echo "Installing Nginx..."
 apt-get -q -y update > /dev/null 
