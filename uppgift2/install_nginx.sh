@@ -10,7 +10,8 @@ fi
 
 # Install nginx
 # Expl. I check if nginx is installed and sending stderr to null.
-# Then I pipe the output from dpkg-query to grep and count the number of occurences of the word installed, if that equals 1,  I install nginx.
+# Then I pipe the output from dpkg-query to grep and count the number
+# of occurences of the word installed, if that equals 0,  I install nginx.
 if [ $(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "installed") -eq 0 ]
 then
 echo "Installing Nginx..."
@@ -19,7 +20,9 @@ apt-get -q -y install nginx > /dev/null
 fi
 
 # Is nginx enabled and running?
-# Expl. I use systemctl to verify if nginx is enabled and activated. It seems that in Ubuntu this will be the case but that can change in the future.
+# Expl. I use systemctl to verify if nginx is enabled and activated. 
+# It seems that in Ubuntu this will be the case but that can change 
+# in the future.
 
 loaded=$(systemctl is-enabled nginx)
 active=$(systemctl is-active nginx)
@@ -39,6 +42,9 @@ fi
 # Enabling firewall
 # Expl. A good practice to always have the firewall running.
 # And I'm adding rules to allow ssh and http.
+# The enable option will prompt the user for a yes or no so
+# I'm pipeing yes to the command to answer it affirmative and without
+# user input. Then I'm sending stderr to stdout to infinity.
 if [ $(ufw status | grep -c "Status: inactive") -eq 1 ]
 then
 	echo "Enabling the firewall..."
