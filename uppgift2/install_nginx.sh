@@ -42,9 +42,9 @@ fi
 if [ $(ufw status | grep -c "Status: inactive") -eq 1 ]
 then
 	echo "Enabling the firewall..."
-	yes | ufw enable 2>&1 > /dev/null
 	ufw allow ssh
 	ufw allow http
+	yes | ufw enable 2>&1 > /dev/null
 fi
 
 # Add a new default homepage.
