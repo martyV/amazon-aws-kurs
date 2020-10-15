@@ -6,7 +6,7 @@ Jag kommer att använda mig av CloudFormation för att skapa upp miljön där v�
 
 ![](./overview-trans.png)
 
-När jag beskriver den Cloudformation Template jag använder för ändamålet att skapa en robust, säker och skalbar miljö för en webbapplikation kommer jag att dela upp den i mindre delar för att i slutet på dokumentet presentera hela template:n. Template:n har fått namnet `c2a1-template.yaml. *c2a1* är en förkortning av *Course 2 Assignment 1*.
+När jag beskriver den Cloudformation Template jag använder för ändamålet att skapa en robust, säker och skalbar miljö för en webbapplikation kommer jag att dela upp den i mindre delar för att i slutet på dokumentet presentera hela template:n. Template:n har fått namnet `c2a1-template.yaml`. *c2a1* är en förkortning av *Course 2 Assignment 1*.
 
 Förutsättningar:
 
