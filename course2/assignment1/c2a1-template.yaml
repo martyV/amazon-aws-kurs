@@ -1,0 +1,438 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Course 2, Assignment 1 - c2a1"
+Parameters:
+# Network 
+  VpcCidr:
+    Description: VPC for c2a1
+    Type: String
+    Default: 10.191.0.0/20
+
+  PublicSubnet1Cidr:
+    Description: Public Subnet 1 for c2a1
+    Type: String
+    Default: 10.191.1.0/24
+  PublicSubnet2Cidr:
+    Description: Public Subnet 2 for c2a1
+    Type: String
+    Default: 10.191.2.0/24
+  PublicSubnet3Cidr:
+    Description: Public Subnet 3 for c2a1
+    Type: String
+    Default: 10.191.3.0/24
+  PublicSubnet4Cidr:
+    Description: Public Subnet 4 for c2a1 Bastion Server
+    Type: String
+    Default: 10.191.4.0/28
+
+# Instance
+  InstanceType:
+    Description: Enter t2.micro, t2.nano or t3.micro. Default is t2.micro.
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.nano
+      - t3.micro
+
+# Private ssh key
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the web server
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+
+# SSH Restrication
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+
+Mappings:
+  RegionMap:
+    eu-west-1:
+      AMIAmazon: ami-0bb3fad3c0286ebd5
+    eu-north-1:
+      AMIAmazon: ami-0653812935d0743fe
+
+Resources:
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    DependsOn: 
+      - InstanceSecurityGroup
+      - WebSecurityGroup
+    Properties:
+      LaunchTemplateData:
+        InstanceType: !Ref InstanceType
+        ImageId: !FindInMap [ RegionMap, !Ref "AWS::Region", AMIAmazon ]
+        KeyName: !Ref KeyName
+        SecurityGroupIds:
+          - !GetAtt InstanceSecurityGroup.GroupId
+          - !GetAtt WebSecurityGroup.GroupId
+        TagSpecifications:
+        - ResourceType: instance
+          Tags:
+          - Key: Name
+            Value: c2a1 Web Instance
+          - Key: Env
+            Value: dev
+        UserData: IyEvYmluL2Jhc2gKIyBVcGRhdGUgYW5kIEluc3RhbGwKeXVtIHVwZGF0ZSAteQphbWF6b24tbGludXgtZXh0cmFzIGluc3RhbGwgbmdpbngxIC15Cnl1bSBjbGVhbiBhbGwKIyBDcmVhdGUgYWRtaW4gdXNlcgp1c2VyYWRkIGFkbWluCnVzZXJtb2QgLWFHIHdoZWVsIGFkbWluCiMgVXBkYXRlIHN1ZG9lcnMKY2F0IDw8IEVPRiA+IC9ldGMvc3Vkb2Vycy5kLzkxLWFkbWluLXVzZXIKIyBVc2VyIHJ1bGVzIGZvciBhZG1pbiB1c2VyCmFkbWluIEFMTD0oQUxMKSBOT1BBU1NXRDpBTEwKRU9GCiMgQWRkIHNzaCBrZXlzCm1rZGlyIC9ob21lL2FkbWluLy5zc2gKY2hvd24gYWRtaW46YWRtaW4gL2hvbWUvYWRtaW4vLnNzaApjaG1vZCAwNzAwIC9ob21lL2FkbWluLy5zc2gKZWNobyAic3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBQkl3QUFBUUVBdmRsSTQvRktPcm02ZTh6V3ZGSXVCR3pxaTMxZXQ4RXhEbnJPNkw2dzVPMUpJNFMwbjVreGNObFRrbTArMEkvcGEvUFdkc2cyMS9Jc0RQRTlEV08rOWJFWDE4elBGOEJTQldLMmJVa1N5OUtYZWFUMlFZVzBZVGxCdmtEVzcrdEJPbEJBWHFJcDI1ODY3WHNqUjBTQmVwZXdEbGFIRXdoVWwrQStUQnMrTWR5K1dWSFI0dXlnNzl5S29LQ1U1c3JWL3RYR2FlVXM4VzhRZkxnakFNQ0FKcHNHUTRiMzJmWm1vOHhFblUrcTdPc01pbjMyc0c3d002TTJrY1ZGMm00WkVEYVB3ZENvbjFWVnRVLzViUWZ4RTE3YUtFNUhkU1F0SitpRjJJbVBTZmFGVVQ3MkVadkV5bUpsR3V0aGFCalR5T0ttbFh0RHNRdUJoOEhmSEZ4aGhRPT0gbWFydGluQG1hY2Jvb2stMi5sb2NhbCIgPj4gL2hvbWUvYWRtaW4vLnNzaC9hdXRob3JpemVkX2tleXMKY2hvd24gYWRtaW4gL2hvbWUvYWRtaW4vLnNzaC9hdXRob3JpemVkX2tleXMKY2htb2QgMDYwMCAvaG9tZS9hZG1pbi8uc3NoL2F1dGhvcml6ZWRfa2V5cwojIENyZWF0ZSBhIG5ldyBkZWZhdWx0IGhvbWVwYWdlLgppcGFkZHJlc3M9JChob3N0bmFtZSAtcyB8IGN1dCAtZCItIiAtZjIsMyw0LDUgfCB0ciAtIC4pCmNhdCA8PCBFT0YgPiAvdXNyL3NoYXJlL25naW54L2h0bWwvaW5kZXguaHRtbAo8IURPQ1RZUEUgaHRtbD4KPGh0bWwgbGFuZz0iZW4iPgo8aGVhZD4KICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgPHRpdGxlPkNvdXJzZSAyLCBBc3NpZ25tZW50IDE8L3RpdGxlPgo8L2hlYWQ+Cjxib2R5PgogIDxoMT5NYXJ0aW4gSGVsbHN0csO2bTwvaDE+CjxwPlByaXZhdGUgSVAgQWRkcmVzczogJGlwYWRkcmVzczwvcD4KPC9ib2R5Pgo8L2h0bWw+CkVPRgojIEVuYWJsZSBhbmQgc3RhcnQgc2VydmljZXMKc3lzdGVtY3RsIGVuYWJsZSBuZ2lueApzeXN0ZW1jdGwgc3RhcnQgbmdpbngK
+      LaunchTemplateName: c2a1-template
+
+  c2a1ASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: c2a1-ASG
+      AvailabilityZones:
+        - "eu-west-1a"
+        - "eu-west-1b"
+        - "eu-west-1c"
+      MinSize: '0'
+      MaxSize: '6'
+      DesiredCapacity: '3'
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      TargetGroupARNs: 
+        - !Ref TargetGroup
+      VPCZoneIdentifier:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+        - !Ref PublicSubnet3
+      Tags:
+        - Key: Name
+          Value: c2a1 Auto Scaling Group
+          PropagateAtLaunch: 'false'
+        - Key: Env
+          Value: dev
+          PropagateAtLaunch: 'true'
+
+  c2a1LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: VPC
+    Properties:
+      Name: c2a1-lb
+      Subnets: 
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+        - !Ref PublicSubnet3
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+      Tags:
+        - Key: Name
+          Value: c2a1 Load Balancer
+        - Key: Env
+          Value: dev
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref c2a1LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: c2a1TargetGroup
+      VpcId: !Ref VPC
+      Port: '80'
+      Protocol: HTTP
+      Tags:
+        - Key: Name
+          Value: c2a1 Target Group
+        - Key: Env
+          Value: dev
+
+
+
+# Security Groups
+  SshSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: SshSG-c2a1
+      GroupDescription: Enable SSH access via port 22
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: !Ref SSHLocation
+      Tags:
+        - Key: Name
+          Value: c2a1 Ssh Security Group
+        - Key: Env
+          Value: dev
+
+  WebSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    DependsOn:
+      - VPC
+      - LoadBalancerSecurityGroup
+    Properties:
+      GroupName: WebSG-c2a1
+      GroupDescription: Enable Web access via port 80
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: c2a1 Web Security Group
+        - Key: Env
+          Value: dev
+  InboundRule:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !GetAtt WebSecurityGroup.GroupId
+      IpProtocol: tcp
+      FromPort: '80'
+      ToPort: '80'
+      SourceSecurityGroupId: !GetAtt LoadBalancerSecurityGroup.GroupId
+
+  InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    DependsOn: VPC
+    Properties:
+      GroupName: InstanceSG-c2a1
+      GroupDescription: Enable ssh access via port 22 from Public Subnet 4
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: !Ref PublicSubnet4Cidr
+      Tags:
+        - Key: Name
+          Value: c2a1 Instance Security Group
+        - Key: Env
+          Value: dev
+
+  LoadBalancerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    DependsOn: VPC
+    Properties:
+      GroupName: LoadBalancerSG-c2a1
+      GroupDescription: Enable http access via port 80 from Internet
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: c2a1 Load Balancer Security Group
+        - Key: Env
+          Value: dev
+
+  BastionInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap [ RegionMap, !Ref "AWS::Region", AMIAmazon ]
+      InstanceType: !Ref 'InstanceType'
+      KeyName: !Ref 'KeyName'
+      SecurityGroupIds:
+        - !Ref 'SshSecurityGroup'
+      SubnetId: !Ref 'PublicSubnet4'
+      UserData:
+        "Fn::Base64": !Sub |
+          #!/bin/bash -xe
+          yum update -y
+          yum clean all
+          useradd admin
+          usermod -aG wheel admin
+          # Update sudoers
+          cat << EOF > /etc/sudoers.d/91-admin-user
+          # User rules for admin user
+          admin ALL=(ALL) NOPASSWD:ALL
+          EOF
+          # Add ssh keys
+          mkdir /home/admin/.ssh
+          chown admin:admin /home/admin/.ssh
+          chmod 0700 /home/admin/.ssh
+          echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAvdlI4/FKOrm6e8zWvFIuBGzqi31et8ExDnrO6L6w5O1JI4S0n5kxcNlTkm0+0I/pa/PWdsg21/IsDPE9DWO+9bEX18zPF8BSBWK2bUkSy9KXeaT2QYW0YTlBvkDW7+tBOlBAXqIp25867XsjR0SBepewDlaHEwhUl+A+TBs+Mdy+WVHR4uyg79yKoKCU5srV/tXGaeUs8W8QfLgjAMCAJpsGQ4b32fZmo8xEnU+q7OsMin32sG7wM6M2kcVF2m4ZEDaPwdCon1VVtU/5bQfxE17aKE5HdSQtJ+iF2ImPSfaFUT72EZvEymJlGuthaBjTyOKmlXtDsQuBh8HfHFxhhQ== martin@macbook-2.local" >> /home/admin/.ssh/authorized_keys
+          chown admin /home/admin/.ssh/authorized_keys
+          chmod 0600 /home/admin/.ssh/authorized_keys
+      Tags:
+        - Key: Name
+          Value: c2a1 Bastion Server
+        - Key: Env
+          Value: dev
+
+# Network
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: c2a1 Vpc
+        - Key: Env
+          Value: dev
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: c2a1 Internet Gateway
+        - Key: Env
+          Value: dev
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    DependsOn:
+      - InternetGateway
+      - VPC
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    DependsOn: VPC
+    Properties:
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      CidrBlock: !Ref PublicSubnet1Cidr
+      AvailabilityZone: !Select 
+        - 0
+        - !GetAZs 
+          Ref: AWS::Region
+      Tags:
+        - Key: Name
+          Value: c2a1 Public Subnet AZ1
+        - Key: Env
+          Value: dev
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    DependsOn: VPC
+    Properties:
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      CidrBlock: !Ref PublicSubnet2Cidr
+      AvailabilityZone: !Select 
+        - 1
+        - !GetAZs 
+          Ref: AWS::Region
+      Tags:
+        - Key: Name
+          Value: c2a1 Public Subnet AZ2
+        - Key: Env
+          Value: dev
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    DependsOn: VPC
+    Properties:
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      CidrBlock: !Ref PublicSubnet3Cidr
+      AvailabilityZone: !Select 
+        - 2
+        - !GetAZs 
+          Ref: AWS::Region
+      Tags:
+        - Key: Name
+          Value: c2a1 Public Subnet AZ3
+        - Key: Env
+          Value: dev
+
+  PublicSubnet4:
+    Type: AWS::EC2::Subnet
+    DependsOn: VPC
+    Properties:
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      CidrBlock: !Ref PublicSubnet4Cidr
+      AvailabilityZone: !Select 
+        - 0
+        - !GetAZs 
+          Ref: AWS::Region
+      Tags:
+        - Key: Name
+          Value: c2a1 Public Subnet AZ1
+        - Key: Env
+          Value: dev
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    DependsOn: VPC
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: c2a1 Public Route Table
+        - Key: Env
+          Value: dev
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - PublicRouteTable
+      - InternetGatewayAttachment
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - PublicRouteTable
+      - PublicSubnet1
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - PublicRouteTable
+      - PublicSubnet2
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  PublicSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - PublicRouteTable
+      - PublicSubnet3
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet3
+
+  PublicSubnet4RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - PublicRouteTable
+      - PublicSubnet4
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet4
+
+Outputs:
+  LoadBalancerUrl:
+    Description: The URL of the ALB
+    Value: !GetAtt c2a1LoadBalancer.DNSName
+
+  BastionIp:
+    Description: The Ip address of the Bastion Instance.
+    Value: !GetAtt BastionInstance.PublicIp

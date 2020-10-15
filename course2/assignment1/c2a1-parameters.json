@@ -1,0 +1,14 @@
+[
+  {
+    "ParameterKey": "InstanceType",
+    "ParameterValue": "t2.micro"
+  },
+  {
+    "ParameterKey": "KeyName",
+    "ParameterValue": "martins-aws-campusmolndal"
+  },
+  {
+    "ParameterKey": "SSHLocation",
+    "ParameterValue": "81.230.68.218/32"
+  }
+]
