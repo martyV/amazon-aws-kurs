@@ -760,13 +760,31 @@ aws cloudformation delete-stack --stack-name c2a1-stack
 
 * Centralisera loggning med hjälp av CloudWatch.
 
-## GitHub
+
+
+## Sammanfattning
+
+En stor fördel med att använda CloudFormation är att infrastrukturen blir till kod och är enkel att dela med andra och revisionshantera i t.ex Git. Det blir också väldigt enkelt att replikera en miljö i flera regioner. Miljön blir också förutsägbar på ett annat vis än ifall alla beståndsdelar skall sättas upp manuellt av en eller flera personer. Risken för fel och att miljön driftar iväg minskar helt enkelt med CloudFormation. Varför är då den miljö som jag har skapat via den CloudFormation template som beskrivits i detta dokument robust, säker och skalbar. 
+
+* Miljön skapas i flera Availabilty Zones ( fristående datacenter ) vilket betyder att om ett datacenter försvinner så är ändå min webbsida accessbar ifrån internet. 
+
+* Ett nytt VPC med tillhörande subnät skapas vilket gör att vi inte riskerar att krocka med några andra resurser vilket kunde bli fallet om vi delat VPC med andra resurser. Risken för att den mänskliga faktorn skall råka plocka bort något minskar också.
+
+* Skulle lasten öka kraftigt så skalar miljön vertikalt med fler webbserver instanser till ett max värde på 6 stycken.
+
+* Säkerhetsgrupperna begränsar träffytan till ett minimum och tillåter endast trafik som måste släppas igenom för att webbsidan skall kunna presenteras. Med vår bastion instans kan vi sköta underhåll som patchning av operativsystem och mjukvara för att upprätthålla en hög säkerhet utan att behöva öppna upp för `ssh`till våra webbserver instanser.
+
+Jag vill i sammanfattningen reflektera över varför jag anser att miljön som skapas med hjälp av den CloudFormation template som beskrivits i detta dokument är robust, säker och skalbar. 
+
+## Appendix a
+
+#### GitHub
 
 På GitHub finns den CloudFormation Template som jag försökt beskriva här plus detta dokument.
 
-<URLLLLLL>
+Följ länken: [GitHub - martyV/amazon-aws-kurs]([amazon-aws-kurs/course2/assignment1 at master · martyV/amazon-aws-kurs · GitHub](https://github.com/martyV/amazon-aws-kurs/tree/master/course2/assignment1)) eller klona repot: `git clone https://github.com/martyV/amazon-aws-kurs.git`
 
-## Appendix
+## Appendix b
 
 #### c2a1-template.yaml
 
