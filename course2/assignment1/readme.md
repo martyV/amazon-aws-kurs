@@ -1,5 +1,4 @@
-## readme.md
-Delkurs2 inlämningsuppgift 1
+# Delkurs2 inlämningsuppgift 1
 
 * Skapa en robust, säker och skalbar hosting-miljö för en webapplikation (med en sida som innehåller ditt namn)
 
