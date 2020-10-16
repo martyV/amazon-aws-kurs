@@ -1,4 +1,59 @@
-# Delkurs 2 inlämningsuppgift 1
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
+</br>
+
+<img src="./firstpage.png" title="" alt="" data-align="center">
+
+<p style="page-break-before: always">
+
+## Table of Contents
+
+- **[Inledning](#Inledning)**
+- **[Förutsättningar](#Förutsättningar)**
+- **[CloudFormation Template](#CloudFormation-Template)**
+  - [Parameters](#Parameters)
+  - [Mappings](#Mappings)
+  - [Launch Template](#Launch-Template)
+    - [DependsOn](#DependsOn)
+    - [SecurityGroupIds](#SecurityGroupIds)
+    - [InstanceType](#InstanceType)
+    - [ImageId](#ImageId)
+    - [KeyName](#KeyName)
+    - [UserData](#UserData)
+  - [Network overview](#Network-overview)
+    - [VPC](#VPC)
+    - [Subnets](#Subnets)
+    - [Routing](#Routing)
+    - [Internet Gateway](#Internet-Gateway)
+  - [Security group overview](#Security-group-overview)
+    - [SshSecurityGroup](#SshSecurityGroup)
+    - [WebSecurityGroup](#WebSecurityGroup)
+    - [InstanceSecurityGroup](#InstanceSecurityGroup)
+    - [LoadBalancerSecurityGroup](#LoadBalancerSecurityGroup)
+  - [Auto Scaling Group](#Auto-Scaling-Group)
+  - [Target Group](#Target-Group)
+  - [LoadBalancer](#LoadBalancer)
+  - [Bastion instance](#Bastion-instance)
+  - [Outputs](#Outputs)
+- **[Cli commands](#Cli-commands)**
+- **[Förbättringar](#Förbättringar)**
+- **[Sammanfattning](#Sammanfattning)**
+- **[Appendix a](#Appendix-a)**
+  - [GitHub](#GitHub)
+- **[Appendix b](#Appendix-b)**
+  - [c2a1-template.yaml](#c2a1-template.yaml)
+  - [c2a1-properties.json](#c2a1-properties.json)
+
+<p style="page-break-before: always">
+
+# Inledning
 
 Uppgiften är att skapa en robust, säker och skalbar hosting-miljö för en webbapplikation.
 
@@ -6,14 +61,16 @@ Jag kommer att använda mig av CloudFormation för att skapa upp miljön där v�
 
 ![](./overview-trans.png)
 
-När jag beskriver den Cloudformation Template jag använder för ändamålet att skapa en robust, säker och skalbar miljö för en webbapplikation kommer jag att dela upp den i mindre delar för att i slutet på dokumentet presentera hela template:n. Template:n har fått namnet `c2a1-template.yaml. *c2a1* är en förkortning av *Course 2 Assignment 1*.
+När jag beskriver den Cloudformation Template jag använder för ändamålet att skapa en robust, säker och skalbar miljö för en webbapplikation kommer jag att dela upp den i mindre delar för att i slutet på dokumentet presentera hela template:n. Template:n har fått namnet `c2a1-template.yaml`. *c2a1* är en förkortning av *Course 2 Assignment 1*.
 
-Förutsättningar:
+## Förutsättningar:
 
 - En lokal aws client.
 - AWS konto med tillbörliga rättigheter.
 - AWS Region är bestämd till eu-west-1.
 - Instansernas operativsystemet är bestämt till Amazon Linux 2.
+
+<p style="page-break-before: always">
 
 ## CloudFormation Template
 
@@ -145,7 +202,7 @@ I mappings sektionen skapar jag möjligheten att använda vår CloudFormation Te
 
 I vår Launch Template finns några attribut och properties som är mer intressanta än andra, här följer en kort förklaring av dessa.
 
-###### DependsOn
+##### DependsOn
 
 ```yaml
 DependsOn:
@@ -155,7 +212,7 @@ DependsOn:
 
 Vår Launch Template är beroende av att de säkerhetsgrupper som kopplas till den slutgiltiga instansen är skapade innan Launch Template:n för att vi skall kunna få ut säkerhetsgruppernas grupp id för användning i `Properties: SecurityGroupIds`.
 
-###### SecurityGroupIds
+##### SecurityGroupIds
 
 ```yaml
         SecurityGroupIds:
@@ -165,7 +222,7 @@ Vår Launch Template är beroende av att de säkerhetsgrupper som kopplas till d
 
 Säkerhetsgrupperna kommer att beskrivas mer senare i detta dokument.
 
-###### InstanceType
+##### InstanceType
 
 ```yaml
     InstanceType: !Ref InstanceType
@@ -173,7 +230,7 @@ Säkerhetsgrupperna kommer att beskrivas mer senare i detta dokument.
 
 InstanceType refererar tillbaka till den tidigare satta parametern InstanceType som jag satt till `t2.micro` som standard.
 
-###### ImageId
+##### ImageId
 
 ```yaml
     ImageId: !FindInMap [ RegionMap, !Ref "AWS::Region", AMIAmazon ]
@@ -181,7 +238,7 @@ InstanceType refererar tillbaka till den tidigare satta parametern InstanceType 
 
 ImageId får värdet av den ami som är mappad till den region som vi befinner oss i. I denna uppgift bestämmer förutsättningarna att vi skall befinna oss i eu-west-1 men det går alltså att använda CloudFormation template:n i en annan region om så behövs. 
 
-###### KeyName
+##### KeyName
 
 ```yaml
     KeyName: !Ref KeyName
@@ -189,7 +246,7 @@ ImageId får värdet av den ami som är mappad till den region som vi befinner o
 
 KeyName refererar till parametern KeyName som inte har ett standard värde utan här måste ett val genomföras eller att en personliga nyckel specas i `c2a1-parameters.json`.
 
-###### UserData
+##### UserData
 
 Eftersom UserData är base64 kodad så har jag i detta dokument bara tagit med de första tecknen under rubriken Launch Template. Här följer nu UserData men i en mer läsbar form.
 
@@ -432,7 +489,7 @@ En internet gateway måste skapas och logiskt kopplas till vårt VPC för att n�
 
 Template:n skapar upp fyra stycken Security Groups. Två stycken är knutna till webb instanserna, en är kopplad till vår Bastion instans och den sista är kopplad till lastbalanseraren.
 
-###### SshSecurityGroup
+#### SshSecurityGroup
 
 Denna Security Group används för att styra vilken nätverkstrafik som släpps fram till vår Bastion server.
 
@@ -457,7 +514,7 @@ Denna Security Group används för att styra vilken nätverkstrafik som släpps 
 
 `CidrIp: !Ref SSHLocation` refererar till parametern SSHLocation vilken som standard är satt till alla adresser men som med fördel kan strypas ner till en eller ett fåtal adresser beroende på lokal nätverksuppsättning.
 
-###### WebSecurityGroup
+#### WebSecurityGroup
 
 Denna Security Group hanterar nätverkstrafiken till våra webbservrar på tcp-port 80. Både Ingress trafik och Egress trafik är kontrollerad både för kontroll och referens.  Inkommande nätverkstrafik tillåts bara ifrån Lastbalanseraren eftersom den trafiken kontrolleras av Security Group *LoadBalancerSecurityGroup*.
 
@@ -499,7 +556,7 @@ Utgående nätverkstrafik styrs av property:n `SecurityGroupEgress` och endast h
 
 För att kunna koppla en Security Group till en annan Security Group krävs att `Type: 'AWS::EC2::SecurityGroupIngress'` används som med properties `GroupId` och `SourceSecurityGroupId` logiskt genomför kopplingen.
 
-###### InstanceSecurityGroup
+#### InstanceSecurityGroup
 
 Denna Security Group tillåter bara ssh trafik från nätet PublicSubnet4, där vår Bastion server är placerad, till våra webbserver instanser även om dom är placerade på publika nät. Här hade det fungerat att styra trafiken som i *WebSecurityGroup* med länkade säkerhetsgrupper men detta är ett exempel på en mer klassisk nätverkssegmentering.
 
@@ -523,7 +580,7 @@ Denna Security Group tillåter bara ssh trafik från nätet PublicSubnet4, där 
           Value: dev
 ```
 
-###### LoadBalancerSecurityGroup
+#### LoadBalancerSecurityGroup
 
 Denna säkerhetsgrupp kontrollerar trafiken till lastbalanseraren.
 
@@ -688,6 +745,8 @@ Outputs:
     Value: !GetAtt BastionInstance.PublicIp
 ```
 
+<p style="page-break-before: always">
+
 ## Cli commands
 
 Nu är det dax att deploy:a vår CloudFormation Template och skapa en *CloudFormation stack*.
@@ -752,6 +811,8 @@ Plocka bort hela stacken.
 aws cloudformation delete-stack --stack-name c2a1-stack
 ```
 
+<p style="page-break-before: always">
+
 ## Förbättringar
 
 * Möjligheten att använda andra Linux distributioner än Amazon Linux 2 t.ex CentOS. Det krävs då lite logik i user-data delen för våra instanser men är fullt genomförbart. Ett annat sätt är att lägga in så lite som möjligt i user-data och istället förlita sig på t.ex. Ansible för configuration och installation av instanserna. 
@@ -760,21 +821,19 @@ aws cloudformation delete-stack --stack-name c2a1-stack
 
 * Centralisera loggning med hjälp av CloudWatch.
 
-
-
 ## Sammanfattning
 
 En stor fördel med att använda CloudFormation är att infrastrukturen blir till kod och är enkel att dela med andra och revisionshantera i t.ex Git. Det blir också väldigt enkelt att replikera en miljö i flera regioner. Miljön blir också förutsägbar på ett annat vis än ifall alla beståndsdelar skall sättas upp manuellt av en eller flera personer. Risken för fel och att miljön driftar iväg minskar helt enkelt med CloudFormation. Varför är då den miljö som jag har skapat via den CloudFormation template som beskrivits i detta dokument robust, säker och skalbar. 
 
-* Miljön skapas i flera Availabilty Zones ( fristående datacenter ) vilket betyder att om ett datacenter försvinner så är ändå min webbsida accessbar ifrån internet. 
+* Miljön skapas i flera Availabilty Zones ( fristående datacenter ) vilket betyder att om ett datacenter försvinner så är ändå min webbsida accessbar ifrån internet. Vi använder AWS molnstruktur som genom åren visat sig vara mycket robust.
 
-* Ett nytt VPC med tillhörande subnät skapas vilket gör att vi inte riskerar att krocka med några andra resurser vilket kunde bli fallet om vi delat VPC med andra resurser. Risken för att den mänskliga faktorn skall råka plocka bort något minskar också.
+* Ett nytt VPC med tillhörande subnät skapas vilket gör att vi inte riskerar att krocka med några andra resurser vilket skulle kunna bli fallet om vi delat VPC med andra resurser. Risken för att den mänskliga faktorn skall råka plocka bort något minskar också. Vi vet helt enkelt hur vår miljö ser ut.
 
-* Skulle lasten öka kraftigt så skalar miljön vertikalt med fler webbserver instanser till ett max värde på 6 stycken.
+* Skulle lasten öka kraftigt så skalar miljön vertikalt med fler webbserver instanser till ett max värde på 6 stycken. 
 
-* Säkerhetsgrupperna begränsar träffytan till ett minimum och tillåter endast trafik som måste släppas igenom för att webbsidan skall kunna presenteras. Med vår bastion instans kan vi sköta underhåll som patchning av operativsystem och mjukvara för att upprätthålla en hög säkerhet utan att behöva öppna upp för `ssh`till våra webbserver instanser.
+* Säkerhetsgrupperna begränsar träffytan till ett minimum och tillåter endast trafik som måste släppas igenom för att webbsidan skall kunna presenteras. Med vår bastion instans kan vi sköta underhåll som patchning av operativsystem och mjukvara för att upprätthålla en hög säkerhet utan att behöva öppna upp för ssh till våra webbserver instanser.
 
-Jag vill i sammanfattningen reflektera över varför jag anser att miljön som skapas med hjälp av den CloudFormation template som beskrivits i detta dokument är robust, säker och skalbar. 
+<p style="page-break-before: always">
 
 ## Appendix a
 
@@ -782,7 +841,9 @@ Jag vill i sammanfattningen reflektera över varför jag anser att miljön som s
 
 På GitHub finns den CloudFormation Template som jag försökt beskriva här plus detta dokument.
 
-Följ länken: [GitHub - martyV/amazon-aws-kurs]([amazon-aws-kurs/course2/assignment1 at master · martyV/amazon-aws-kurs · GitHub](https://github.com/martyV/amazon-aws-kurs/tree/master/course2/assignment1)) eller klona repot: `git clone https://github.com/martyV/amazon-aws-kurs.git`
+Följ länken: [GitHub - martyV/amazon-aws-kurs/course2/assignment1]([amazon-aws-kurs/course2/assignment1 at master · martyV/amazon-aws-kurs · GitHub](https://github.com/martyV/amazon-aws-kurs/tree/master/course2/assignment1)) eller klona repot: `git clone https://github.com/martyV/amazon-aws-kurs.git`. 
+
+<p style="page-break-before: always">
 
 ## Appendix b
 
