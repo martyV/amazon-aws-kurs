@@ -9,11 +9,11 @@
 </br>
 </br>
 
-<img src="./firstpage.png" title="" alt="" data-align="center">
+<img src="./images/firstpage.png" title="" alt="" data-align="center">
 
 <p style="page-break-before: always">
 
-## Table of Contents
+## Innehållsförteckning
 
 - **[Inledning](#Inledning)**
 - **[Förutsättningar](#Förutsättningar)**
@@ -45,9 +45,9 @@
 - **[Cli commands](#Cli-commands)**
 - **[Förbättringar](#Förbättringar)**
 - **[Sammanfattning](#Sammanfattning)**
-- **[Appendix a](#Appendix-a)**
+- **[Appendix A](#Appendix-A)**
   - [GitHub](#GitHub)
-- **[Appendix b](#Appendix-b)**
+- **[Appendix B](#Appendix-B)**
   - [c2a1-template.yaml](#c2a1-template.yaml)
   - [c2a1-properties.json](#c2a1-properties.json)
 
@@ -59,7 +59,7 @@ Uppgiften är att skapa en robust, säker och skalbar hosting-miljö för en web
 
 Jag kommer att använda mig av CloudFormation för att skapa upp miljön där vår webbapplikation skall vara tillgänglig från Internet. När det gäller designen så vill jag skapa ett eget VPC med tillhörande subnet i 3 stycken Availibilty Zones. En Nginx webbserver kommer att distribueras inom varje subnet via en AutoScalingGroup som använder en LaunchTemplate för att sätta upp varje webbserver på ett korrekt sätt. 
 
-![](./overview-trans.png)
+![](./images/overview-trans.png)
 
 När jag beskriver den Cloudformation Template jag använder för ändamålet att skapa en robust, säker och skalbar miljö för en webbapplikation kommer jag att dela upp den i mindre delar för att i slutet på dokumentet presentera hela template:n. Template:n har fått namnet `c2a1-template.yaml`. *c2a1* är en förkortning av *Course 2 Assignment 1*.
 
@@ -302,7 +302,7 @@ Sista steget är att aktivera och starta nginx tjänsten.
 
 ### Network overview
 
-![](./NetworkLayout-trans.png)
+![](./images/NetworkLayout-trans.png)
 
 Bilden visar en enkel översikt över hur de olika subnäten är placerade i olika Availability Zones (AZ) inom vår region och vårt VPC. Även nätverksadresserna som specades i Parameter sektion syns på bilden. Inom våra publika subnät 1 - 3 kommer webbservrarna att placeras och i det 4:e subnätet kommer en bastion server placeras som vi kommer att kunna köra `ssh` till, ifrån den ipadress som sätts med parametern SSHLocation, som standard är det hela internet.
 
@@ -815,7 +815,7 @@ aws cloudformation delete-stack --stack-name c2a1-stack
 
 ## Förbättringar
 
-* Möjligheten att använda andra Linux distributioner än Amazon Linux 2 t.ex CentOS. Det krävs då lite logik i user-data delen för våra instanser men är fullt genomförbart. Ett annat sätt är att lägga in så lite som möjligt i user-data och istället förlita sig på t.ex. Ansible för configuration och installation av instanserna. 
+* Möjligheten att använda andra Linux distributioner än Amazon Linux 2 t.ex CentOS. Det krävs då lite logik i user-data delen för våra instanser men är fullt genomförbart. Ett annat sätt vore att lägga in så lite logik som möjligt i user-data och istället förlita sig på t.ex. Ansible för configuration och installation av instanserna. 
 
 * Placera webbservrarna på privata nät så att det bara är lastbalanseraren som har en publik ipadress. Känns onödigt att boka upp publika ipadresser till våra webservrar som aldrig kommer att användas.
 
@@ -835,7 +835,7 @@ En stor fördel med att använda CloudFormation är att infrastrukturen blir til
 
 <p style="page-break-before: always">
 
-## Appendix a
+## Appendix A
 
 #### GitHub
 
@@ -845,7 +845,7 @@ Följ länken: [GitHub - martyV/amazon-aws-kurs/course2/assignment1]([amazon-aws
 
 <p style="page-break-before: always">
 
-## Appendix b
+## Appendix B
 
 #### c2a1-template.yaml
 
