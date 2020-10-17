@@ -817,9 +817,7 @@ aws cloudformation delete-stack --stack-name c2a1-stack
 
 * Möjligheten att använda andra Linux distributioner än Amazon Linux 2 t.ex CentOS. Det krävs då lite logik i user-data delen för våra instanser men är fullt genomförbart. Ett annat sätt vore att lägga in så lite logik som möjligt i user-data och istället förlita sig på t.ex. Ansible för configuration och installation av instanserna. 
 
-* Placera webbservrarna på privata nät så att det bara är lastbalanseraren som har en publik ipadress. Känns onödigt att boka upp publika ipadresser till våra webservrar som aldrig kommer att användas.
-
-* Centralisera loggning med hjälp av CloudWatch.
+* Centraliserad loggning med hjälp av CloudWatch.
 
 ## Sammanfattning
 
