@@ -827,7 +827,7 @@ En stor fördel med att använda CloudFormation är att infrastrukturen blir til
 
 * Ett nytt VPC med tillhörande subnät skapas vilket gör att vi inte riskerar att krocka med några andra resurser vilket skulle kunna bli fallet om vi delat VPC med andra resurser. Risken för att den mänskliga faktorn skall råka plocka bort något minskar också. Vi vet helt enkelt hur vår miljö ser ut.
 
-* Skulle lasten öka kraftigt så skalar miljön vertikalt med fler webbserver instanser till ett max värde på 6 stycken. 
+* Skulle lasten öka kraftigt så skalar miljön horisonellt med fler webbserver instanser till ett max värde på 6 stycken. 
 
 * Säkerhetsgrupperna begränsar träffytan till ett minimum och tillåter endast trafik som måste släppas igenom för att webbsidan skall kunna presenteras. Med vår bastion instans kan vi sköta underhåll som patchning av operativsystem och mjukvara för att upprätthålla en hög säkerhet utan att behöva öppna upp för ssh till våra webbserver instanser.
 
