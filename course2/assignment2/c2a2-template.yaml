@@ -1,0 +1,735 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Course 2, Assignment 2 - c2a2"
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Database"
+        Parameters:
+          - DBName
+          - DBUser
+          - DBPassword
+          - DBMasterUser
+          - DBMasterPassword
+      - Label:
+          default: "Security"
+        Parameters:
+          - KeyName
+          - SSHLocation
+      - Label:
+          default: "Network"
+        Parameters:
+          - VpcCidr
+          - PublicSubnet1Cidr
+          - PublicSubnet2Cidr
+          - PublicSubnet3Cidr
+          - PublicSubnet4Cidr
+      - Label:
+          default: "Wordpress"
+        Parameters:
+          - WordpressTitle
+          - WordpressAdminName
+          - WordpressAdminPasswd
+          - WordpressAdminEmail
+Parameters:
+# Wordpress
+  WordpressTitle:
+    Description: Wordpress Title
+    Type: String
+  WordpressAdminName:
+    Description: Wordpress Admin Username
+    NoEcho: 'true'
+    Type: String
+  WordpressAdminPasswd:
+    Description: The Wordpress Admin Password
+    NoEcho: 'true'
+    Type: String
+  WordpressAdminEmail:
+    Description: The Wordpress Admin Email Address
+    Type: String
+# Network 
+  VpcCidr:
+    Description: VPC for Storage
+    Type: String
+    Default: 10.191.0.0/20
+  PublicSubnet1Cidr:
+    Description: Public Subnet 1 for storage
+    Type: String
+    Default: 10.191.1.0/24
+  PublicSubnet2Cidr:
+    Description: Public Subnet 2 for storage
+    Type: String
+    Default: 10.191.2.0/24
+  PublicSubnet3Cidr:
+    Description: Public Subnet 3 for storage
+    Type: String
+    Default: 10.191.3.0/24
+  PublicSubnet4Cidr:
+    Description: Public Subnet 4 for Build and Bastion Server
+    Type: String
+    Default: 10.191.4.0/28
+
+# Instance
+  InstanceType:
+    Description: Enter t2.micro, t2.nano or t3.micro. Default is t2.micro.
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.nano
+      - t3.micro
+
+# Private ssh key
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the web server
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+
+# SSH Restrication
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+      #Default: 0.0.0.0/0
+    Default: 81.230.68.218/32
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+# Database
+  DBName:
+    Description: The WordPress database name
+    Type: String
+    MinLength: '1'
+    MaxLength: '64'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric
+      characters.
+  DBUser:
+    NoEcho: 'true'
+    Description: The WordPress database admin account username
+    Type: String
+    MinLength: '1'
+    MaxLength: '16'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric
+      characters.
+  DBPassword:
+    NoEcho: 'true'
+    Description: The WordPress database admin account password
+    Type: String
+    MinLength: '8'
+    MaxLength: '41'
+    AllowedPattern: '[a-zA-Z0-9]*'
+    ConstraintDescription: must contain only alphanumeric characters.
+  DBMasterUser:
+    Description: The database Master account username
+    Type: String
+    MinLength: '1'
+    MaxLength: '16'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric
+      characters.
+  DBMasterPassword:
+    NoEcho: 'true'
+    Description: The MySQL database Master account password
+    Type: String
+    MinLength: '8'
+    MaxLength: '41'
+    AllowedPattern: '[a-zA-Z0-9]*'
+    ConstraintDescription: must contain only alphanumeric characters.
+
+Mappings:
+  RegionMap:
+    eu-west-1:
+      AMIAmazon: ami-0bb3fad3c0286ebd5
+    eu-north-1:
+      AMIAmazon: ami-0653812935d0743fe
+
+Resources:
+  SshSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: SshSG-c2a2
+      GroupDescription: Enable SSH access via port 22
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: !Ref SSHLocation
+      Tags:
+        - Key: Name
+          Value: c2a2 Ssh Security Group
+        - Key: Env
+          Value: dev
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: MySqlSG-c2a2
+      GroupDescription: Open database for access
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: c2a2 DB Security Group
+        - Key: Env
+          Value: dev
+  DBSGInboundRule:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      Description: Enable access to MySQL for WebsecurityGroup
+      GroupId: !Ref DBSecurityGroup
+      IpProtocol: tcp
+      FromPort: '3306'
+      ToPort: '3306'
+      SourceSecurityGroupId: !Ref WebSecurityGroup
+
+  EfsSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: EfsSG-c2a2
+      GroupDescription: Enable NFS access
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: c2a2 EFS Security Group
+        - Key: Env
+          Value: dev
+  EfsSGInboundRule:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      Description: Enable access to NFS export for WebSecurityGroup
+      GroupId: !Ref EfsSecurityGroup
+      IpProtocol: tcp
+      FromPort: '2049'
+      ToPort: '2049'
+      SourceSecurityGroupId: !Ref WebSecurityGroup
+
+  InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: InstanceSG-c2a2
+      GroupDescription: Enable ssh access via port 22 from Bastion and Build servers
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: c2a2 Instance Security Group
+        - Key: Env
+          Value: dev
+  InstanceSGInboundRule:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      Description: Enable access via ssh for SshSecurityGroup
+      GroupId: !Ref InstanceSecurityGroup
+      IpProtocol: tcp
+      FromPort: '22'
+      ToPort: '22'
+      SourceSecurityGroupId: !Ref SshSecurityGroup
+
+  LoadBalancerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: LoadBalancerSG-c2a2
+      GroupDescription: Enable http access via port 80 from Internet
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: c2a2 Load Balancer Security Group
+        - Key: Env
+          Value: dev
+
+  WebSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: WebSG-c2a2
+      GroupDescription: Enable Web access via port 80
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: c2a2 Web Security Group
+        - Key: Env
+          Value: dev
+  WebSGInboundRule:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !Ref WebSecurityGroup
+      IpProtocol: tcp
+      FromPort: '80'
+      ToPort: '80'
+      SourceSecurityGroupId: !GetAtt LoadBalancerSecurityGroup.GroupId
+  WebSGOutboundRuleMySql:
+    Type: 'AWS::EC2::SecurityGroupEgress'
+    Properties:
+      Description: Allow traffic to the mysql database
+      GroupId: !Ref WebSecurityGroup
+      IpProtocol: tcp
+      FromPort: '3306'
+      ToPort: '3306'
+      DestinationSecurityGroupId: !GetAtt DBSecurityGroup.GroupId
+  WebSGOutboundRuleNFS:
+    Type: 'AWS::EC2::SecurityGroupEgress'
+    Properties:
+      Description: Allow traffic to NFS export
+      GroupId: !Ref WebSecurityGroup
+      IpProtocol: tcp
+      FromPort: '2049'
+      ToPort: '2049'
+      DestinationSecurityGroupId: !GetAtt EfsSecurityGroup.GroupId
+
+# Instances
+  BuildInstance:
+    Type: AWS::EC2::Instance
+    DependsOn: 
+      - AccessPointResource
+      - MyDB
+    Properties:
+      ImageId: !FindInMap [ RegionMap, !Ref "AWS::Region", AMIAmazon ]
+      InstanceType: !Ref 'InstanceType'
+      KeyName: !Ref 'KeyName'
+      SecurityGroupIds:
+        - !Ref 'SshSecurityGroup'
+        - !Ref 'WebSecurityGroup'
+      SubnetId: !Ref 'PublicSubnet4'
+      UserData:
+        "Fn::Base64": !Sub |
+          #!/bin/bash -xe
+          yum update -y
+          yum install aws-cfn-bootstrap amazon-efs-utils -y
+          amazon-linux-extras install lamp-mariadb10.2-php7.2 php7.2 -y
+          yum install httpd php-gd -y
+          yum clean all
+          useradd wp-user
+          usermod -aG wheel wp-user
+          # Update sudoers
+          cat << EOF > /etc/sudoers.d/91-wp-user-user
+          # User rules for wp-user user
+          wp-user ALL=(ALL) NOPASSWD:ALL
+          EOF
+          # Add ssh keys
+          mkdir /home/wp-user/.ssh
+          chown wp-user:wp-user /home/wp-user/.ssh
+          chmod 0700 /home/wp-user/.ssh
+          echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAvdlI4/FKOrm6e8zWvFIuBGzqi31et8ExDnrO6L6w5O1JI4S0n5kxcNlTkm0+0I/pa/PWdsg21/IsDPE9DWO+9bEX18zPF8BSBWK2bUkSy9KXeaT2QYW0YTlBvkDW7+tBOlBAXqIp25867XsjR0SBepewDlaHEwhUl+A+TBs+Mdy+WVHR4uyg79yKoKCU5srV/tXGaeUs8W8QfLgjAMCAJpsGQ4b32fZmo8xEnU+q7OsMin32sG7wM6M2kcVF2m4ZEDaPwdCon1VVtU/5bQfxE17aKE5HdSQtJ+iF2ImPSfaFUT72EZvEymJlGuthaBjTyOKmlXtDsQuBh8HfHFxhhQ== martin@macbook-2.local" >> /home/wp-user/.ssh/authorized_keys
+          chown wp-user /home/wp-user/.ssh/authorized_keys
+          chmod 0600 /home/wp-user/.ssh/authorized_keys
+          # Update dir and file permissions
+          usermod -a -G apache wp-user
+          chown -R wp-user:apache /var/www
+          # Mount filesystem
+          echo "${FileSystemResource} /var/www/html efs _netdev,tls,accesspoint=${AccessPointResource} 0 0" >> /etc/fstab
+          mount -a
+          # Download and unpack wordpress
+          wget -q https://wordpress.org/latest.tar.gz -O /var/tmp/latest.tar.gz
+          tar xfz /var/tmp/latest.tar.gz --no-same-owner --strip-components=1 -C /var/www/html/
+          # Set permissions
+          chmod 2775 /var/www && find /var/www -type d -exec sudo chmod 2775 {} \;
+          # find /var/www -type f -exec sudo chmod 0664 {} \;
+          # Install wp-cli
+          wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -O /usr/local/bin/wp && chmod +x /usr/local/bin/wp
+          # Config httpd.conf
+          sed -i '/<Directory "\/var\/www\/html">/,/<\/Directory>/ s/AllowOverride None/AllowOverride all/' /etc/httpd/conf/httpd.conf
+          sed -i 's/index.html/index.html index.php/g' /etc/httpd/conf/httpd.conf
+          # Create and Configure the Database
+          Q1="CREATE DATABASE IF NOT EXISTS ${DBName};"
+          Q2="CREATE USER '${DBUser}'@'%' IDENTIFIED BY '${DBPassword}';"
+          Q3="GRANT ALL PRIVILEGES ON ${DBName}.* TO '${DBUser}'@'%';"
+          Q4="FLUSH PRIVILEGES;"
+          SQL="$Q1$Q2$Q3$Q4"
+          mysql -u ${DBMasterUser} -p${DBMasterPassword} -h ${MyDB.Endpoint.Address} -e "$SQL"
+          # Wordpress configuration
+          wp config create --dbhost=${MyDB.Endpoint.Address} --dbname=${DBName} --dbuser=${DBUser} --dbpass=${DBPassword} --path=/var/www/html
+          wp core install --url=${c2a2LoadBalancer.DNSName} --title="${WordpressTitle}" --admin_name=${WordpressAdminName} --admin_password=${WordpressAdminPasswd} --admin_email=${WordpressAdminEmail} --skip-email --path=/var/www/html
+          wp post delete 1 --path=/var/www/html
+          wp theme activate twentyseventeen --path=/var/www/html
+          curl -N http://loripsum.net/api/5 | wp post generate --post_content --count=10 --path=/var/www/html
+          # Signal to Cloudformation that we're done here.
+          /opt/aws/bin/cfn-signal -s true --stack ${AWS::StackName} --resource BuildInstance --region ${AWS::Region}
+          # Signing of
+          shutdown -h now
+      Tags:
+        - Key: Name
+          Value: c2a2 Build Server
+        - Key: Env
+          Value: dev
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT20M
+
+  BastionInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap [ RegionMap, !Ref "AWS::Region", AMIAmazon ]
+      InstanceType: !Ref 'InstanceType'
+      KeyName: !Ref 'KeyName'
+      SecurityGroupIds:
+        - !Ref 'SshSecurityGroup'
+      SubnetId: !Ref 'PublicSubnet4'
+      UserData:
+        "Fn::Base64": !Sub |
+          #!/bin/bash -xe
+          yum update -y
+          yum clean all
+      Tags:
+        - Key: Name
+          Value: c2a2 Bastion Server
+        - Key: Env
+          Value: dev
+
+# Network
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: c2a2 Vpc
+        - Key: Env
+          Value: dev
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: c2a2 Internet Gateway
+        - Key: Env
+          Value: dev
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      CidrBlock: !Ref PublicSubnet1Cidr
+      AvailabilityZone: !Select 
+        - 0
+        - !GetAZs 
+          Ref: AWS::Region
+      Tags:
+        - Key: Name
+          Value: c2a2 Public Subnet AZ1
+        - Key: Env
+          Value: dev
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      CidrBlock: !Ref PublicSubnet2Cidr
+      AvailabilityZone: !Select 
+        - 1
+        - !GetAZs 
+          Ref: AWS::Region
+      Tags:
+        - Key: Name
+          Value: c2a2 Public Subnet AZ2
+        - Key: Env
+          Value: dev
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      CidrBlock: !Ref PublicSubnet3Cidr
+      AvailabilityZone: !Select 
+        - 2
+        - !GetAZs 
+          Ref: AWS::Region
+      Tags:
+        - Key: Name
+          Value: c2a2 Public Subnet AZ3
+        - Key: Env
+          Value: dev
+  PublicSubnet4:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: true
+      CidrBlock: !Ref PublicSubnet4Cidr
+      AvailabilityZone: !Select 
+        - 0
+        - !GetAZs 
+          Ref: AWS::Region
+      Tags:
+        - Key: Name
+          Value: c2a2 Public Subnet AZ1
+        - Key: Env
+          Value: dev
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: c2a2 Public Route Table
+        - Key: Env
+          Value: dev
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+  PublicSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet3
+  PublicSubnet4RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet4
+
+# EFS
+  FileSystemResource:
+    Type: AWS::EFS::FileSystem
+    DeletionPolicy: Delete
+    Properties:
+      BackupPolicy:
+        Status: DISABLED
+      PerformanceMode: generalPurpose
+      Encrypted: true
+      FileSystemTags:
+        - Key: Name
+          Value: c2a2 FileSystem
+
+  MountTargetResource1:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref FileSystemResource
+      SubnetId: !Ref PublicSubnet1
+      SecurityGroups:
+        - Ref: EfsSecurityGroup
+  MountTargetResource2:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref FileSystemResource
+      SubnetId: !Ref PublicSubnet2
+      SecurityGroups:
+        - Ref: EfsSecurityGroup
+  MountTargetResource3:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref FileSystemResource
+      SubnetId: !Ref PublicSubnet3
+      SecurityGroups:
+        - Ref: EfsSecurityGroup
+
+  AccessPointResource:
+    Type: 'AWS::EFS::AccessPoint'
+    Properties:
+      FileSystemId: !Ref FileSystemResource
+      PosixUser:
+        Uid: "1001"
+        Gid: "48"
+      RootDirectory:
+        CreationInfo:
+          OwnerUid: "1001"
+          OwnerGid: "48"
+          Permissions: "2775"
+        Path: "/wordpress"
+          #      AccesspointTags:
+          #        - Key: Name
+          #          Value: c2a2 Accesspoint
+
+# RDS
+  MyDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: '20'
+      DBInstanceClass: db.t2.micro
+      DBInstanceIdentifier: mydb
+      DBSubnetGroupName: !Ref 'MyDBSubnetGroup'
+      Engine: MySQL
+      EngineVersion: 8.0.20
+      MasterUsername: !Ref 'DBMasterUser'
+      MasterUserPassword: !Ref 'DBMasterPassword'
+      DBParameterGroupName: !Ref 'MyRDSParamGroup'
+      VPCSecurityGroups:
+        - !Ref DBSecurityGroup
+      Tags:
+        - Key: Name
+          Value: c2a2 DB
+    DeletionPolicy: Delete
+  MyRDSParamGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Family: mysql8.0
+      Description: CloudFormation Database Parameter Group
+  MyDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupName: MyDBSubnetGroup
+      DBSubnetGroupDescription: 'DB Subnets'
+      SubnetIds:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+        - !Ref PublicSubnet3
+      Tags:
+        - Key: Name
+          Value: c2a2 DB Subnet Group
+
+  c2a2LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: VPC
+    Properties:
+      Name: c2a2-lb
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+        - !Ref PublicSubnet3
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+      Tags:
+        - Key: Name
+          Value: c2a2 Load Balancer
+        - Key: Env
+          Value: dev
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref c2a2LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: c2a2TargetGroup
+      VpcId: !Ref VPC
+      Port: '80'
+      Protocol: HTTP
+      Tags:
+        - Key: Name
+          Value: c2a2 Target Group
+        - Key: Env
+          Value: dev
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        InstanceType: !Ref InstanceType
+        ImageId: !FindInMap [ RegionMap, !Ref "AWS::Region", AMIAmazon ]
+        KeyName: !Ref KeyName
+        SecurityGroupIds:
+          - !GetAtt InstanceSecurityGroup.GroupId
+          - !GetAtt WebSecurityGroup.GroupId
+        TagSpecifications:
+        - ResourceType: instance
+          Tags:
+          - Key: Name
+            Value: c2a2 Web Instance
+          - Key: Env
+            Value: dev
+        UserData:
+          "Fn::Base64": !Sub |
+            #!/bin/bash -xe
+            yum update -y
+            yum install amazon-efs-utils -y
+            amazon-linux-extras install lamp-mariadb10.2-php7.2 php7.2 -y
+            yum install httpd php-gd -y
+            yum clean all
+            # Create Wordpress user
+            useradd wp-user
+            # Update dir and file permissions
+            usermod -a -G apache wp-user
+            chown -R wp-user:apache /var/www
+            # create mount point
+            echo "${FileSystemResource} /var/www/html efs _netdev,tls,accesspoint=${AccessPointResource} 0 0" >> /etc/fstab
+            mount -a
+            # Config httpd.conf
+            sed -i '/<Directory "\/var\/www\/html">/,/<\/Directory>/ s/AllowOverride None/AllowOverride all/' /etc/httpd/conf/httpd.conf
+            sed -i 's/index.html/index.html index.php/g' /etc/httpd/conf/httpd.conf
+            # Enable and start the httpd services
+            systemctl enable httpd
+            systemctl start httpd
+      LaunchTemplateName: c2a2-template
+
+  c2a2ASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    DependsOn:
+      - BuildInstance
+    Properties:
+      AutoScalingGroupName: c2a2-ASG
+      AvailabilityZones:
+        - "eu-west-1a"
+        - "eu-west-1b"
+        - "eu-west-1c"
+      MinSize: '0'
+      MaxSize: '6'
+      DesiredCapacity: '2'
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      TargetGroupARNs:
+        - !Ref TargetGroup
+      VPCZoneIdentifier:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+        - !Ref PublicSubnet3
+      Tags:
+        - Key: Name
+          Value: c2a2 Auto Scaling Group
+          PropagateAtLaunch: 'false'
+        - Key: Env
+          Value: dev
+          PropagateAtLaunch: 'true'
+
+Outputs:
+  BastionInstanceIp:
+    Description: The Ip address of the Bastion Instance.
+    Value: !GetAtt BastionInstance.PublicIp
+
+  LoadBalancerUrl:
+    Description: The URL of the ALB
+    Value: !GetAtt c2a2LoadBalancer.DNSName

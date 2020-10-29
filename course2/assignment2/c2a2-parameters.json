@@ -1,0 +1,50 @@
+[
+  {
+    "ParameterKey": "InstanceType",
+    "ParameterValue": "t2.micro"
+  },
+  {
+    "ParameterKey": "KeyName",
+    "ParameterValue": "martins-aws-campusmolndal"
+  },
+  {
+    "ParameterKey": "SSHLocation",
+    "ParameterValue": "81.230.68.218/32"
+  },
+  {
+    "ParameterKey": "WordpressTitle",
+    "ParameterValue": "Great Scott!"
+  },
+  {
+    "ParameterKey": "WordpressAdminName",
+    "ParameterValue": "wpadmin"
+  },
+  {
+    "ParameterKey": "WordpressAdminPasswd",
+    "ParameterValue": "tio3fVaec6Umee5iej"
+  },
+  {
+    "ParameterKey": "WordpressAdminEmail",
+    "ParameterValue": "70marhel@gafe.molndal.se"
+  },
+  {
+    "ParameterKey": "DBName",
+    "ParameterValue": "wpdb"
+  },
+  {
+    "ParameterKey": "DBUser",
+    "ParameterValue": "admin"
+  },
+  {
+    "ParameterKey": "DBPassword",
+    "ParameterValue": "exoo2Aeheil6"
+  },
+  {
+    "ParameterKey": "DBMasterUser",
+    "ParameterValue": "root"
+  },
+  {
+    "ParameterKey": "DBMasterPassword",
+    "ParameterValue": "beigheeg0Pha"
+  }
+]
