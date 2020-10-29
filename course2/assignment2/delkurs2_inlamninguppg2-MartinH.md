@@ -21,7 +21,7 @@
 </br>
 </br>
 </p>
-  
+
 - **[Inledning](#Inledning)**
   - [Översikt](#Översikt)
 - **[Förutsättningar](#Förutsättningar)**
@@ -611,7 +611,7 @@ Bastion instansen skapa och placeras på vårt mindre publika subnät - `PublicS
 
 <p style="page-break-before: always">
 
-### Network overview
+### Network Overview
 
 Nätverkskonfigurationen består av ett nytt VPC och 4 stycken subnät. Ett /24 subnät i varje Availability Zone plus ett mindre subnät som används av bygginstansen och Bastion instansen.
 
@@ -635,7 +635,7 @@ Ett VPC skapas upp med en referens till parametern `VpcCidr`:
           Value: dev
 ```
 
-#### Internet gateway
+#### Internet Gateway
 
 En Internet Gateway skapas och kopplas till vårt VPC med hjälp av `InternetGatewayAttachment`.
 
@@ -766,7 +766,7 @@ Den routing som krävs skapas upp med följande parametrar:
       SubnetId: !Ref PublicSubnet4
 ```
 
-### Filesystem overview
+### Filesystem Overview
 
 Dax att skapa ett filsystem som kan monteras in i vardera webbserver. Först skapas filsystemet och efter det ett `MountTarget` i tre av dom fyra subnäten för att göra filsystemet tillgängligt i varje Availability Zone. Filsystemets `DeletionPolicy` är satt till `Delete` vilket medför att när Cloudformation stack:n tas bort försvinner även filsystemet.
 
@@ -827,7 +827,7 @@ Sista steget är skapandet av en `AccessPoint` som vi monterar in i våra webbse
           Value: c2a2 Accesspoint
 ```
 
-### Database overview
+### Database Overview
 
 För att skapa upp vår MySQL databas använder vi en Amazon RDS database instance. Denna delen bestäms via vår parameters fil även Master användare och lösenord för databasinstansen. Jag refererar även till `MyRDSParamGroup` men jag sätter dock inga specifika värden här men i en produktionsmiljö skulle det kunna vara aktuellt. Jag behåller det som en referens inför framtiden.
 
