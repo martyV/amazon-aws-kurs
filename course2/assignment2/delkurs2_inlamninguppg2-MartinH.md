@@ -434,9 +434,10 @@ Build instansen som skall bygga upp och konfigurera Wordpress applikationen konf
     DependsOn: 
       - AccessPointResource
       - MyDB
+      - c2a2LoadBalancer
 ```
 
-`DependsOn` bestämmer att Build instansen måste vänta på att Databasen och NFS exporten skapas innan Build instansen. Detta är viktigt eftersom dessa resurser måste finnas på plats och vara accessbara av det skript som körs i Build instansens UserData del.
+`DependsOn` bestämmer att Build instansen måste vänta på att Databasen, NFS exporten och lastbalanseraren skapas innan Build instansen. Detta är viktigt eftersom dessa resurser måste finnas på plats och vara accessbara av det skript som körs i Build instansens UserData del.
 
 I UserData körs följande kommandon för att uppdatera `/etc/fstab`och sedan montera filsystemet där webbrooten skall placeras:
 
@@ -461,7 +462,8 @@ mysql -u ${DBMasterUser} -p${DBMasterPassword} -h ${MyDB.Endpoint.Address} -e "$
 För att konfigurera Wordpress från kommandoraden används verktyger wp-cli som laddas ner och installeras. Sedan körs konfigurationen med följande kod:
 
 ```bash
-wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -O /usr/local/bin/wp && chmod +x /usr/local/bin/wp
+wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -O /usr/local/bin/wp && \
+chmod +x /usr/local/bin/wp
 ```
 
 ```bash
@@ -509,6 +511,7 @@ Här följer hela konfigurationen för bygginstansen:
     DependsOn: 
       - AccessPointResource
       - MyDB
+      - c2a2LoadBalancer
     Properties:
       ImageId: !FindInMap [ RegionMap, !Ref "AWS::Region", AMIAmazon ]
       InstanceType: !Ref 'InstanceType'
@@ -1028,16 +1031,13 @@ Outputs:
 Skapa stacken:
 
 ```bash
-aws cloudformation create-stack --stack-name c2a2-stack \
---template-body file://c2a2-template.yaml \
---parameters file://c2a2-parameters.json
+aws cloudformation create-stack --stack-name c2a2-stack --template-body file://c2a2-template.yaml --parameters file://c2a2-parameters.json
 ```
 
 Visa output:
 
 ```bash
-aws cloudformation describe-stacks --stack-name c2a2-stack \
---query "Stacks[*].Outputs" --output json
+aws cloudformation describe-stacks --stack-name c2a2-stack --query "Stacks[*].Outputs" --output json
 ```
 
 Testa att komma åt vår Wordpress installation via den URL:n som presenteras som LoadbalancerUrl ifrån output kommandot ovan. 
@@ -1047,12 +1047,12 @@ Exempel:
 ```json
 {
     "OutputKey": "LoadBalancerUrl"
-    "OutputValue": "c2a2-lb-985168691.eu-west-1.elb.amazonaws.com",
+    "OutputValue": "c2a2-lb-2024076523.eu-west-1.elb.amazonaws.com",
     "Description": "The URL of the ALB"
 },
 ```
 
-![](./images/screenshot.png)
+![](./images/screenshot-wp.png)
 
 Ta bort stack:n
 

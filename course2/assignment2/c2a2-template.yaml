@@ -306,6 +306,7 @@ Resources:
     DependsOn: 
       - AccessPointResource
       - MyDB
+      - c2a2LoadBalancer
     Properties:
       ImageId: !FindInMap [ RegionMap, !Ref "AWS::Region", AMIAmazon ]
       InstanceType: !Ref 'InstanceType'
