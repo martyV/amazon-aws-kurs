@@ -22,38 +22,38 @@
 </br>
 </p>
 
-- **[Inledning](#Inledning)**
-  - [Översikt](#Översikt)
-- **[Förutsättningar](#Förutsättningar)**
-- **[CloudFormation Template](#CloudFormation-Template)**
-  - [Metadata](#Metadata)
-  - [Parameters](#Parameters)
-  - [Mappings](#Mappings)
-  - [Resources](#Resources)
-    - [SecurityGroups Overview](#SecurityGroups-Overview)
-    - [Instances Overview](#Instances-Overview)
-      - [Build Instance](#Build-Instance)
-      - [Bastion Instance](#Bastion-Instance)
-    - [Network Overview](#Network-Overview)
-      - [VPC](#VPC)
-      - [Internet Gateway](#Internet-Gateway)
-      - [Subnets](#Subnets)
-      - [Routing](#Routing)
-    - [Filesystem Overview](#Filesystem-Overview)
-    - [Database Overview](#Database-Overview)
-    - [Loadbalancer](#Loadbalancer)
-    - [TargetGroup](#TargetGroup)
-    - [LaunchTemplate](#LaunchTemplate)
-    - [AutoScalingGroup](#AutoScalingGroup)
-  - [Outputs](#Outputs)
-- **[Deploy Cloudformation template](#Deploy-Clouformation-template)**
-- **[Förbättringar](#Förbättringar)**
-- **[Sammanfattning](#Sammanfattning)**
-- **[Appendix A](#Appendix-A)**
-  - [GitHub](#GitHub)
-- **[Appendix B](#Appendix-B)**
-  - [c2a2-template.yaml](#c2a2-template.yaml)
-  - [c2a2-parameters.json](#c2a2-parameters.json)
+- **[Inledning](#inledning)**
+  - [Översikt](#%C3%B6versikt)
+- **[Förutsättningar](#f%C3%B6ruts%C3%A4ttningar)**
+- **[CloudFormation Template](#cloudformation-template)**
+  - [Metadata](#metadata)
+  - [Parameters](#parameters)
+  - [Mappings](#mappings)
+  - [Resources](#resources)
+    - [SecurityGroups Overview](#securitygroups-overview)
+    - [Instances Overview](#instances-overview)
+      - [Build Instance](#build-instance)
+      - [Bastion Instance](#bastion-instance)
+    - [Network Overview](#network-overview)
+      - [VPC](#vpc)
+      - [Internet Gateway](#internet-gateway)
+      - [Subnets](#subnets)
+      - [Routing](#routing)
+    - [Filesystem Overview](#filesystem-overview)
+    - [Database Overview](#database-overview)
+    - [Loadbalancer](#loadbalancer)
+    - [TargetGroup](#targetgroup)
+    - [LaunchTemplate](#launchtemplate)
+    - [AutoScalingGroup](#autoscalinggroup)
+  - [Outputs](#outputs)
+- **[Deploy Cloudformation template](#deploy-cloudformation-template)**
+- **[Förbättringar](#f%C3%B6rb%C3%A4ttringar)**
+- **[Sammanfattning](#sammanfattning)**
+- **[Appendix A](#appendix-a)**
+  - [GitHub](#gitHub)
+- **[Appendix B](#appendix-b)**
+  - [c2a2-template.yaml](#c2a2-templateyaml)
+  - [c2a2-parameters.json](#c2a2-parametersjson)
 
 <p style="page-break-before: always">
 
