@@ -1,0 +1,73 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudWatchLogsPolicy",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": [
+          "arn:aws:logs:eu-west-1:568963037048:log-group:/aws/codebuild/c2a3AppBuild",
+          "arn:aws:logs:eu-west-1:568963037048:log-group:/aws/codebuild/c2a3AppBuild:*"
+      ]
+    },
+    {
+      "Sid": "CodeCommitPolicy",
+      "Effect": "Allow",
+      "Action": [
+        "codecommit:GitPull"
+      ],
+      "Resource": [
+        "arn:aws:codecommit:eu-west-1:568963037048:c2a3-Repo"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+          "codebuild:CreateReportGroup",
+          "codebuild:CreateReport",
+          "codebuild:UpdateReport",
+          "codebuild:BatchPutTestCases",
+          "codebuild:BatchPutCodeCoverages"
+      ],
+      "Resource": [
+        "arn:aws:codebuild:eu-west-1:568963037048:report-group/c2a3AppBuild-*"
+      ]
+    },
+    {
+      "Sid": "S3GetObjectPolicy",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion"
+      ],
+      "Resource": [
+        ":aws:s3:::codepipeline-eu-west-1-*"
+      ]
+    },
+    {
+      "Sid": "S3PutObjectPolicy",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject"
+      ],
+      "Resource": [
+        ":aws:s3:::codepipeline-eu-west-1-*"
+      ]
+    },
+    {
+      "Sid": "S3BucketIdentity",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketAcl",
+        "s3:GetBucketLocation"
+      ],
+      "Resource": [
+        ":aws:s3:::codepipeline-eu-west-1-*"
+      ]
+    }
+  ]
+}

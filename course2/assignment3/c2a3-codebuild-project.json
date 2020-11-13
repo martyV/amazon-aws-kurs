@@ -1,0 +1,40 @@
+{
+    "name": "c2a3AppBuild",
+    "description": "",
+    "source": {
+        "type": "CODECOMMIT",
+        "location": "https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/c2a3-Repo",
+        "gitCloneDepth": 0,
+        "gitSubmodulesConfig": {
+            "fetchSubmodules": true
+        },
+        "buildspec": "buildspec.yml",
+        "insecureSsl": true
+    },
+    "sourceVersion": "master",
+    "artifacts": {
+        "type": "NO_ARTIFACTS"
+    },
+    "cache": {
+        "type": "NO_CACHE",
+        "location": "",
+        "modes": [
+            "LOCAL_DOCKER_LAYER_CACHE"
+        ]
+    },
+    "environment": {
+        "type": "LINUX_CONTAINER",
+        "image": "aws/codebuild/standard:4.0",
+        "computeType": "BUILD_GENERAL1_SMALL",
+        "privilegedMode": true,
+        "imagePullCredentialsType": "CODEBUILD"
+    },
+    "serviceRole": "arn:aws:iam::568963037048:role/CodeBuildServiceRole",
+    "timeoutInMinutes": 60,
+    "queuedTimeoutInMinutes": 360,
+    "logsConfig": {
+        "cloudWatchLogs": {
+            "status": "ENABLED"
+        }
+    }
+}
